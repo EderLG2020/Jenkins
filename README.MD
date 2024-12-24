@@ -1,13 +1,21 @@
-Descargando imagen Docker
+## Cargando imagen docker
 
 ```bash
-docker pull jenkins:2.60.3
+docker-compose up -d
 ```
 
-Descargando imagen Nginx
+
+docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+docker logs jenkins
+
+# iniciar
+docker-compose up -d  
+
+# Eliminar imagen
 
 ```bash
-docker pull nginx:stable-perl
+docker rmi <Id>
 ```
 
-docker-compose.yml
+Jenkins 2.479.2
