@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "```bash\r docker-compose up -d\r ```",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "start": "node src/app.js",
+  "dev": "nodemon src/app.js",
+  "test": "echo \"Error: Archivo test no especificado\" && exit 1",
+  "build": "echo \"Construyendo el proyecto...\""
+},
   "keywords": [],
   "author": "",
   "license": "ISC",
