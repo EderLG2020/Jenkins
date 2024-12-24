@@ -1,0 +1,34 @@
+version: '3.8'
+
+services:
+  jenkins:
+    image: jenkins/jenkins:2.60.3 # Cambia a la versión exacta que prefieras
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+    environment:
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+
+  nginx:
+    image: nginx:1.25.2 # Especificar la última versión estable de NGINX
+    container_name: nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx:/etc/nginx/conf.d
+      - ./dist:/usr/share/nginx/html
+
+  app-dev:
+    image: node:18.17.1 # Especificar una versión estable de Node.js
+    container_name: app-dev
+    working_dir: /app
+    volumes:
+      - .:/app
+    command: ["tail", "-f", "/dev/null"]
+
+volumes:
+  jenkins_home:
