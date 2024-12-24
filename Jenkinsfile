@@ -4,17 +4,16 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                checkout scm
+                git branch: 'main', url: 'https://github.com/EderLG2020/Jenkins.git'
             }
         }
 
         stage('Build') {
             steps {
-                // Usa el contenedor de Node.js para instalar dependencias y construir la app
                 script {
-                    docker.image('node:18.17.1').inside {
+                    docker.image('node:18.17.1').inside('-v $WORKSPACE:/app -w /app') {
                         sh 'npm install'
-                        sh 'npm run build' // Asegúrate de tener este script en package.json
+                        sh 'npm run build'
                     }
                 }
             }
@@ -22,9 +21,8 @@ pipeline {
 
         stage('Test') {
             steps {
-                // Ejecuta los tests dentro del contenedor Node.js
                 script {
-                    docker.image('node:18.17.1').inside {
+                    docker.image('node:18.17.1').inside('-v $WORKSPACE:/app -w /app') {
                         sh 'npm test'
                     }
                 }
@@ -33,9 +31,15 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                // Copia los archivos generados al volumen compartido para nginx
                 script {
-                    sh 'cp -r dist/* /usr/share/nginx/html/'
+                    sh '''
+                    if [ -d dist ]; then
+                        cp -r dist/* /usr/share/nginx/html/
+                    else
+                        echo "El directorio 'dist' no existe. Asegúrate de que 'npm run build' lo haya creado."
+                        exit 1
+                    fi
+                    '''
                 }
             }
         }
