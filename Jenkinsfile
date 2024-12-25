@@ -1,7 +1,16 @@
 pipeline {
     agent any
 
-    stages {        
+    stages {
+        stage('Debug') {
+            steps {
+                script {
+                    sh 'pwd'
+                    sh 'ls -la'
+                }
+            }
+        }
+        
         stage('Checkout') {
             steps {
                 script {
