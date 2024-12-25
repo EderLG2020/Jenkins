@@ -2,6 +2,12 @@ pipeline {
     agent any
 
     stages {
+        stage('Clean Workspace') {
+            steps {
+                deleteDir() // Elimina todo el contenido del workspace
+            }
+        }
+        
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/EderLG2020/Jenkins.git'
