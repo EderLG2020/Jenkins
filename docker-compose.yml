@@ -4,7 +4,6 @@ volumes:
   jenkins_home:
   app_shared:
 
-
 services:
   jenkins:
     image: jenkins/jenkins:lts
@@ -21,7 +20,7 @@ services:
     user: root
 
   nginx:
-    image: nginx:1.25.2 # Especificar la última versión estable de NGINX
+    image: nginx:1.25.2
     container_name: nginx
     ports:
       - "80:80"
@@ -29,10 +28,3 @@ services:
       - ./nginx:/etc/nginx/conf.d
       - ./dist:/usr/share/nginx/html
       - app_shared:/usr/share/nginx/html
-  app-dev:
-    image: node:18.17.1 # Especificar una versión estable de Node.js
-    container_name: app-dev
-    working_dir: /app
-    volumes:
-      - .:/app
-    command: ["tail", "-f", "/dev/null"]
