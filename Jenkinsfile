@@ -13,10 +13,8 @@ pipeline {
         
         stage('Checkout') {
             steps {
-                script {
-                    docker.image('alpine/git').inside {
-                        sh 'git clone -b main https://github.com/EderLG2020/Jenkins.git .'
-                    }
+                sshagent(['bb88a626-fa00-41cb-8821-55f2d15f6265']) {
+                    git branch: 'main', url: 'git@github.com:EderLG2020/Jenkins.git'
                 }
             }
         }
