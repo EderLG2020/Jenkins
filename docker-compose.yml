@@ -17,6 +17,8 @@ services:
       - jenkins_network
 
   nginx:
+    depends_on:
+      - jenkins
     image: nginx:latest
     container_name: nginx
     user: root

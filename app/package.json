@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "main": "indes.js",
   "scripts": {
+    "start": "node src/index.js",
     "test": "echo \"Error: No hay arrchivo Test\" && exit 1"
   },
   "keywords": [],

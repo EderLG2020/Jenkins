@@ -9,14 +9,16 @@ pipeline {
     stages {
         stage('Clonar código') {
             steps {
-                git branch: 'main', url: 'https://github.com/EderLG2020/Jenkins.git'
+                script {
+                    git branch: 'main', url: 'https://github.com/EderLG2020/Jenkins.git'
+                }
             }
         }
 
         stage('Construir imagen Docker de Node') {
             steps {
                 script {
-                    docker.build("nodejs-app", "./app")
+                    docker.build("jenkins-with-node", "./app")
                 }
             }
         }
@@ -24,18 +26,27 @@ pipeline {
         stage('Ejecutar pruebas') {
             steps {
                 script {
-                    docker.image('nodejs-app').inside {
-                        sh 'npm test'  // Ejecuta tus pruebas de Node.js aquí
+                    docker.image('jenkins-with-node').inside('--user root') {
+                        sh '''
+                        # Verifica Node.js y npm
+                        node -v
+                        npm -v
+                        # Ejecuta las pruebas
+                        npm test
+                        '''
                     }
                 }
             }
         }
 
+
         stage('Desplegar en Nginx') {
             steps {
                 script {
-                    // Se asume que Nginx y Node.js ya están configurados correctamente
-                    sh 'docker-compose up -d'
+                    sh '''
+                    docker-compose down || true
+                    docker-compose up -d
+                    '''
                 }
             }
         }
@@ -43,7 +54,14 @@ pipeline {
 
     post {
         always {
-            cleanWs()  // Limpiar el workspace después de cada ejecución
+            // Limpieza del workspace
+            script {
+                try {
+                    cleanWs()
+                } catch (Exception e) {
+                    echo "cleanWs plugin no encontrado. Limpieza omitida."
+                }
+            }
         }
     }
 }

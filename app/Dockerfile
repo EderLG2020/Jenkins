@@ -1,27 +1,48 @@
-# Usa la imagen oficial de Jenkins LTS como base
 FROM jenkins/jenkins:lts
 
-# Cambiar a usuario root para instalar dependencias
+# Cambia a usuario root para toda la imagen
 USER root
 
-# Instalar dependencias necesarias para NVM, Node.js y Docker
-RUN apt-get update && \
-    apt-get install -y curl bash git docker.io && \
-    # Instalar NVM (Node Version Manager)
-    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash && \
-    # Instalación de Node.js usando NVM
-    bash -c "source ~/.nvm/nvm.sh && nvm install 16 && nvm use 16 && npm install -g n" && \
-    # Limpiar caché para reducir el tamaño de la imagen
+# Elimina el usuario jenkins para trabajar exclusivamente con root
+RUN deluser --remove-home jenkins || true
+
+# Instala dependencias necesarias para Docker, nvm, y Node.js
+RUN apt-get update && apt-get install -y \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    gnupg \
+    lsb-release \
+    build-essential \
+    libssl-dev && \
+    curl -fsSL https://download.docker.com/linux/debian/gpg | apt-key add - && \
+    echo "deb [arch=amd64] https://download.docker.com/linux/debian $(lsb_release -cs) stable" > /etc/apt/sources.list.d/docker.list && \
+    apt-get update && apt-get install -y docker-ce docker-ce-cli containerd.io && \
     apt-get clean
 
-# Cambiar a usuario jenkins para evitar trabajar como root
-USER jenkins
+# Instala nvm
+RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.5/install.sh | bash
 
-# Expone los puertos de Jenkins (si no están expuestos por defecto)
-EXPOSE 8080
-EXPOSE 50000
+# Asegura permisos para todos los archivos en .nvm
+RUN chmod -R 755 /root/.nvm
 
-# Establecer directorio de trabajo (opcional, si se necesita)
-# WORKDIR /var/jenkins_home
+# Configura las variables de entorno para nvm y Node.js
+ENV NVM_DIR=/root/.nvm
+ENV PATH=$NVM_DIR/versions/node/v18.0.0/bin:$NVM_DIR/bin:$PATH
 
-# Iniciar Jenkins (por defecto, Jenkins se inicia cuando el contenedor corre)
+# Instala Node.js y npm con nvm como root
+RUN bash -c "source $NVM_DIR/nvm.sh && nvm install 18 && nvm alias default 18"
+
+# Verifica Docker, Node.js y npm como usuario root
+RUN docker --version && bash -c "source $NVM_DIR/nvm.sh && node -v && npm -v"
+
+# Configura el usuario predeterminado como root
+USER root
+
+# Establece el directorio de trabajo predeterminado como root
+WORKDIR /root
+
+# Exponer puertos (igual que en Jenkins)
+EXPOSE 8080 50000
+
+
