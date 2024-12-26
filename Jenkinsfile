@@ -1,58 +1,49 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_IMAGE = 'node:16'
+        NGINX_CONTAINER = 'nginx'
+    }
+
     stages {
-        stage('Debug') {
+        stage('Clonar código') {
             steps {
-                script {
-                    sh 'pwd'
-                    sh 'ls -la'
-                }
+                git branch: 'main', url: 'https://github.com/EderLG2020/Jenkins.git'
             }
         }
-        
-        stage('Checkout') {
+
+        stage('Construir imagen Docker de Node') {
             steps {
-                sshagent(['bb88a626-fa00-41cb-8821-55f2d15f6265']) {
-                    git branch: 'main', url: 'git@github.com:EderLG2020/Jenkins.git'
+                script {
+                    docker.build("nodejs-app", "./app")
                 }
             }
         }
 
-        stage('Build') {
+        stage('Ejecutar pruebas') {
             steps {
                 script {
-                    docker.image('node:18.17.1').inside('-v $WORKSPACE:/app -w /app') {
-                        sh 'npm install'
-                        sh 'npm run build'
+                    docker.image('nodejs-app').inside {
+                        sh 'npm test'  // Ejecuta tus pruebas de Node.js aquí
                     }
                 }
             }
         }
 
-        stage('Test') {
+        stage('Desplegar en Nginx') {
             steps {
                 script {
-                    docker.image('node:18.17.1').inside('-v $WORKSPACE:/app -w /app') {
-                        sh 'npm test'
-                    }
+                    // Se asume que Nginx y Node.js ya están configurados correctamente
+                    sh 'docker-compose up -d'
                 }
             }
         }
+    }
 
-        stage('Deploy') {
-            steps {
-                script {
-                    sh '''
-                    if [ -d dist ]; then
-                        cp -r dist/* /usr/share/nginx/html/
-                    else
-                        echo "El directorio 'dist' no existe. Asegúrate de que 'npm run build' lo haya creado."
-                        exit 1
-                    fi
-                    '''
-                }
-            }
+    post {
+        always {
+            cleanWs()  // Limpiar el workspace después de cada ejecución
         }
     }
 }
